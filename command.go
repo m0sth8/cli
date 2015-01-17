@@ -39,19 +39,19 @@ func (c Command) Run(ctx *Context) error {
 	if len(c.Subcommands) > 0 || c.Before != nil {
 		return c.startApp(ctx)
 	}
-
-	if !c.HideHelp && (HelpFlag != BoolFlag{}) {
-		// append help to flags
-		c.Flags = append(
-			c.Flags,
-			HelpFlag,
-		)
-	}
+//	if !c.HideHelp && (HelpFlag != BoolFlag{}) {
+//		// append help to flags
+//		c.Flags = append(
+//			c.Flags,
+//			HelpFlag,
+//		)
+//	}
 
 	if ctx.App.EnableBashCompletion {
 		c.Flags = append(c.Flags, BashCompletionFlag)
 	}
 
+	c.Flags = append(c.Flags, ctx.App.Flags...)
 	set := flagSet(c.Name, c.Flags)
 	set.SetOutput(ioutil.Discard)
 
@@ -129,13 +129,15 @@ func (c Command) startApp(ctx *Context) error {
 	} else {
 		app.Usage = c.Usage
 	}
+	app.Author = ctx.App.Author
+	app.Email = ctx.App.Email
 
 	// set CommandNotFound
 	app.CommandNotFound = ctx.App.CommandNotFound
 
 	// set the flags and commands
 	app.Commands = c.Subcommands
-	app.Flags = c.Flags
+	app.Flags = append(ctx.App.Flags, c.Flags...)
 	app.HideHelp = c.HideHelp
 
 	// bash completion
